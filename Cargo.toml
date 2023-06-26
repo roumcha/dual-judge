@@ -1,0 +1,22 @@
+[package]
+name = "dual-judge"
+version = "2023.6.0"
+edition = "2021"
+authors = ["Roumcha"]
+
+[dependencies]
+anyhow = { version = "1.0.71", features = ["std", "backtrace"] }
+aws-config = "0.55.3"
+aws-sdk-lambda = "0.28.0"
+base64 = "0.21.2"
+chrono = "0.4.26"
+console = "0.15.7"
+flate2 = "1.0.26"
+getopts = "0.2.21"
+lambda_runtime = "0.8.1"
+regex = "1.8.4"
+serde = { version = "1.0.164", features = ["derive"] }
+serde_json = "1.0.97"
+serde_yaml = "0.9.21"
+tempfile = "3.6.0"
+tokio = { version = "1.28.2", features = ["full"] }

@@ -1,0 +1,61 @@
+subm_id: 0 # 自動で増加
+case_dir: in/
+allow_non_ac: 4
+
+local:
+  pre: null
+  parallel: 2 # 物理コア数以下（できれば未満）がよさそう
+  send:
+    # from はカレントディレクトリ、 to は実行用ディレクトリに解決
+    # $casefile でテストケースのパスが入る
+    - { from: start_local.sh, to: start.sh }
+    - { from: $casefile, to: in.txt }
+    # - { from: vis, to: vis }
+  collect:
+    # from は実行用ディレクトリ、 to はケースごとの結果ディレクトリに解決
+    # 回収できなくてもエラーは出ず、続行される
+    - { from: start_out.txt, to: start_out.txt }
+    - { from: start_err.txt, to: start_err.txt }
+    - { from: out.txt, to: out.txt }
+    - { from: err.txt, to: err.txt }
+    - { from: vis.svg, to: vis.svg }
+  post: null
+
+lambda:
+  pre: null
+  parallel: 2
+  function_name: remote-tester
+  send:
+    # from はカレントディレクトリ、 to は Lambda 上のディレクトリに解決
+    # $casefile でテストケースのパスが入る
+    - { from: start_lambda.sh, to: start.sh }
+    - { from: $casefile, to: in.txt }
+    # - { from: vis, to: vis }
+  collect:
+    # from は Lambda 上のディレクトリ、 to はケースごとの結果ディレクトリに解決
+    # 回収できなくてもエラーは出ず、続行される
+    - { from: start_out.txt, to: start_out.txt }
+    - { from: start_err.txt, to: start_err.txt }
+    - { from: out.txt, to: out.txt }
+    - { from: err.txt, to: err.txt }
+    - { from: vis.svg, to: vis.svg }
+  post: null
+
+parse_result:
+  files: [message.txt, start_err.txt, start_out.txt]
+  # マッチしなくていい正規表現には 0^ を入力
+  time_regex: 'real[ \t]+0m([0-9]+\.[0-9]+)s'
+  time_multiplier: 1.0 # 秒に直す
+  score_regex: '[Ss]core[=: \t]+(-?[0-9]+(\.[0-9]+)?)'
+  score_multiplier: 1.0 # ???
+  rate_regex: '[Rr]ate[=: \t]+(-?[0-9]+(\.[0-9]+)?)%'
+  rate_multiplier: 0.01 # 割合に直す
+  force_ac_regex: "0^"
+  ie_regex: '\[IE\]'
+  ce_regex: '\[CE\]'
+  re_regex: '\[RE\]'
+  qle_regex: '\[QLE\]'
+  ole_regex: '\[OLE\]'
+  wa_regex: '\[WA\]'
+  tle_regex: '\[TLE\]'
+  mle_regex: '\[MLE\]'
