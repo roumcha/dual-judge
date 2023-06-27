@@ -37,7 +37,7 @@ async fn main_each(event: LambdaEvent<Request>) -> Result<Response> {
 async fn handler(event: LambdaEvent<Request>, msg: &mut String) -> Result<Vec<CollectedItem>, ()> {
     let request = event.payload;
 
-    writeln!(msg, "=> ファイルの展開").unwrap();
+    writeln!(msg, "[実行環境] ファイルの展開").unwrap();
     for sent in &request.send {
         if let Err(e) = dual_judge::decode_file(&sent.data, &sent.path) {
             writeln!(
@@ -50,7 +50,7 @@ async fn handler(event: LambdaEvent<Request>, msg: &mut String) -> Result<Vec<Co
         }
     }
 
-    writeln!(msg, "=> 実行ディレクトリに実行権限を付与").unwrap();
+    writeln!(msg, "[実行環境] 実行ディレクトリに実行権限を付与").unwrap();
     if let Err(e) = chmod_rec(Path::new("/tmp/runner/")) {
         writeln!(
             msg,
@@ -60,7 +60,7 @@ async fn handler(event: LambdaEvent<Request>, msg: &mut String) -> Result<Vec<Co
         return Err(());
     }
 
-    writeln!(msg, "=> コマンドの実行").unwrap();
+    writeln!(msg, "[実行環境] コマンドの実行").unwrap();
     if let Err(e) = exec_start_sh() {
         writeln!(
             msg,
@@ -69,7 +69,7 @@ async fn handler(event: LambdaEvent<Request>, msg: &mut String) -> Result<Vec<Co
         .unwrap();
     }
 
-    writeln!(msg, "=> ファイルの回収").unwrap();
+    writeln!(msg, "[実行環境] ファイルの回収").unwrap();
     let mut collected = vec![];
     for path in &request.collect {
         match dual_judge::encode_file(&path) {
