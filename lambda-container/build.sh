@@ -5,4 +5,4 @@ cargo lambda build --bin bootstrap --release
 cp -f "target/lambda/bootstrap/bootstrap" "$parent/bootstrap"
 
 cd $parent
-docker build --tag remote-judge:latest .
+docker build --tag dual-judge-lambda .

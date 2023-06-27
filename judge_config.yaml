@@ -10,7 +10,6 @@ local:
     # $casefile でテストケースのパスが入る
     - { from: start_local.sh, to: start.sh }
     - { from: $casefile, to: in.txt }
-    # - { from: vis, to: vis }
   collect:
     # from は実行用ディレクトリ、 to はケースごとの結果ディレクトリに解決
     # 回収できなくてもエラーは出ず、続行される
@@ -24,13 +23,12 @@ local:
 lambda:
   pre: null
   parallel: 2
-  function_name: remote-tester
+  function_name: dual-judge
   send:
     # from はカレントディレクトリ、 to は Lambda 上のディレクトリに解決
     # $casefile でテストケースのパスが入る
     - { from: start_lambda.sh, to: start.sh }
     - { from: $casefile, to: in.txt }
-    # - { from: vis, to: vis }
   collect:
     # from は Lambda 上のディレクトリ、 to はケースごとの結果ディレクトリに解決
     # 回収できなくてもエラーは出ず、続行される
