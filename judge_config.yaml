@@ -3,7 +3,7 @@ case_dir: in/
 allow_non_ac: 4
 
 local:
-  pre: null
+  pre: null # ローカルで実行する前処理コマンド（sh か cmd で実行）
   parallel: 2 # 物理コア数以下（できれば未満）がよさそう
   send:
     # from はカレントディレクトリ、 to は実行用ディレクトリに解決
@@ -18,10 +18,10 @@ local:
     - { from: out.txt, to: out.txt }
     - { from: err.txt, to: err.txt }
     - { from: vis.svg, to: vis.svg }
-  post: null
+  post: null # ローカルで実行する後処理コマンド（sh か cmd で実行）
 
 lambda:
-  pre: null
+  pre: null # ローカルで実行する前処理コマンド（sh か cmd で実行）
   parallel: 2
   function_name: dual-judge
   send:
@@ -37,7 +37,7 @@ lambda:
     - { from: out.txt, to: out.txt }
     - { from: err.txt, to: err.txt }
     - { from: vis.svg, to: vis.svg }
-  post: null
+  post: null # ローカルで実行する後処理コマンド（sh か cmd で実行）
 
 parse_result:
   files: [message.txt, start_err.txt, start_out.txt]
@@ -45,7 +45,7 @@ parse_result:
   time_regex: 'real[ \t]+0m([0-9]+\.[0-9]+)s'
   time_multiplier: 1.0 # 秒に直す
   score_regex: '[Ss]core[=: \t]+(-?[0-9]+(\.[0-9]+)?)'
-  score_multiplier: 1.0 # ???
+  score_multiplier: 1.0 # ??? なんか直す
   rate_regex: '[Rr]ate[=: \t]+(-?[0-9]+(\.[0-9]+)?)%'
   rate_multiplier: 0.01 # 割合に直す
   force_ac_regex: "0^"
