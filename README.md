@@ -19,7 +19,7 @@ cargo build --release --bin judge
 - Windows 上の AWS CLI で、 ECR プライベートリポジトリと AWS Lambda の権限があるアカウントにログイン
 - [コンテナイメージ](https://hub.docker.com/repository/docker/roumcha/dual-judge-lambda/general) を pull し、そのまま Amazon ECR の**プライベート**レポジトリに上げる\
   （.NET 以外のランタイムが必要な言語を使うなら、[リリース](https://github.com/roumcha/dual-judge/releases)から bootstrap をダウンロードして Ubuntu イメージを新しく作る）
--  ECR のコンテナイメージから Lambda 関数を作り、メモリを 1800 MB、実行時間を 10 秒くらいに設定
+- ECR のコンテナイメージから Lambda 関数を作り、メモリを 1800 MB、実行時間を 10 秒くらいに設定
 - WSL 上の Ubuntu 22 以上で、[リリース](https://github.com/roumcha/dual-judge/releases)の `dual-judge-...zip` をダウンロード、展開し、コンテストフォルダとする
 - judge-config.yaml を適宜書き換える
 - `judge` を呼び出して並列テスト
