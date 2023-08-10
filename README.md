@@ -23,3 +23,18 @@ cargo build --release --bin judge
 - WSL 上の Ubuntu 22 以上で、[リリース](https://github.com/roumcha/dual-judge/releases)の `dual-judge-...zip` をダウンロード、展開し、コンテストフォルダとする
 - judge-config.yaml を適宜書き換える
 - `judge` を呼び出して並列テスト
+
+## 更新リリース
+
+- Cargo.toml でバージョンを更新
+- Lambda コンテナイメージをビルドして Docker Hub にプッシュ
+
+```shell
+cargo build --release --bin judge
+
+cp -f ./target/release/judge ./judge
+
+chmod 755 start_lambda.sh start_local.sh judge
+
+tar zcvf dual-judge-20__._._.tar.gz in/ start_lambda.sh start_local.sh judge_config.yaml judge
+```
