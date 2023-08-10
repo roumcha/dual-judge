@@ -35,6 +35,13 @@ async fn main_each(event: LambdaEvent<Request>) -> Result<Response> {
 }
 
 async fn handler(event: LambdaEvent<Request>, msg: &mut String) -> Result<Vec<CollectedItem>, ()> {
+    writeln!(
+        msg,
+        "[実行環境] 開始。ディレクトリ: {}",
+        env::current_dir().unwrap().to_string_lossy()
+    )
+    .unwrap();
+
     let request = event.payload;
 
     writeln!(msg, "[実行環境] ファイルの展開").unwrap();
