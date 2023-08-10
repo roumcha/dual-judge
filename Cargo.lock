@@ -602,7 +602,7 @@ dependencies = [
 
 [[package]]
 name = "dual-judge"
-version = "2023.8.0"
+version = "2023.8.1"
 dependencies = [
  "anyhow",
  "aws-config",
