@@ -171,6 +171,7 @@ fn exec_start_sh(temp_dir: &TempDir) -> Result<()> {
         .context("start_err.txt が作成できません")?;
 
     let output = Command::new("bash")
+        .current_dir(temp_dir)
         .arg(temp_dir.path().join("start.sh"))
         .stdout(Stdio::from(
             outfile
