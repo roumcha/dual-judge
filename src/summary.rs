@@ -136,19 +136,19 @@ impl Display for FinalSummary {
         writeln!(f, "状態: {state_str} ({}/{})", self.ac_count, self.count)?;
         writeln!(
             f,
-            "平均: {}pt, {:.2}%",
+            "平均: {}pt ({:.2}%)",
             comma_sep_int((self.scores.iter().sum::<f64>() / self.count.max(1) as f64) as i128),
             self.rates.iter().sum::<f64>() / self.count as f64 * 100.
         )?;
         writeln!(
             f,
-            "中央: {}pt, {:.2}%",
+            "中央: {}pt ({:.2}%)",
             comma_sep_int(median_or_0(&self.scores) as i128),
             median_or_0(&self.rates) * 100.
         )?;
         writeln!(
             f,
-            "最小: {}pt, {:.2}%",
+            "最小: {}pt ({:.2}%)",
             comma_sep_int(
                 self.scores
                     .iter()
@@ -164,7 +164,7 @@ impl Display for FinalSummary {
         )?;
         writeln!(
             f,
-            "最大: {}pt, {:.2}%",
+            "最大: {}pt ({:.2}%)",
             comma_sep_int(
                 self.scores
                     .iter()
