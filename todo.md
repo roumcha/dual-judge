@@ -1,3 +1,4 @@
+- 使ってみたところ、HTTP タイムアウトで IE 出まくる　だめです
 - bootstrap が Lambda 以外で動かないように、環境変数とかでブロック
 - editorconfig
 - エラー処理を強化
