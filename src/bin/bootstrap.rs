@@ -9,74 +9,60 @@ use std::{
     process::{Command, Stdio},
 };
 
-use lambda_runtime::{run, service_fn, LambdaEvent};
+use lambda_runtime::{service_fn, LambdaEvent};
 
-use dual_judge::lambda::{CollectedItem, Request, Response};
+use dual_judge::{
+    lambda::{CollectedItem, Request, Response},
+    now,
+};
+
+const TMP_DIR: &str = "/tmp/";
+const RUN_DIR: &str = "/tmp/runner/";
 
 #[tokio::main]
-async fn main() -> ! {
-    loop {
-        fs::create_dir_all("/tmp/runner/").unwrap();
-        env::set_current_dir("/tmp/runner/").unwrap();
-
-        run(service_fn(main_each))
-            .await
-            .unwrap_or_else(|e| eprintln!("{e:?}"));
-
-        env::set_current_dir("/tmp/").unwrap();
-        fs::remove_dir_all("/tmp/runner/").unwrap();
-    }
+async fn main() -> Result<(), lambda_runtime::Error> {
+    return lambda_runtime::run(service_fn(handler)).await;
 }
 
-async fn main_each(event: LambdaEvent<Request>) -> Result<Response> {
-    let mut message = String::new();
-    let collected = handler(event, &mut message).await.unwrap_or(vec![]);
-    Ok(Response { message, collected })
-}
-
-async fn handler(event: LambdaEvent<Request>, msg: &mut String) -> Result<Vec<CollectedItem>, ()> {
-    writeln!(
-        msg,
-        "[実行環境] 開始。ディレクトリ: {}",
-        env::current_dir().unwrap().to_string_lossy()
-    )
-    .unwrap();
-
+async fn handler(event: LambdaEvent<Request>) -> Result<Response> {
     let request = event.payload;
+    let mut log = String::new();
 
-    writeln!(msg, "[実行環境] ファイルの展開").unwrap();
+    writeln!(log, "[AWS][{}] ディレクトリ: {RUN_DIR}", now())?;
+    fs::create_dir_all(RUN_DIR)?;
+    env::set_current_dir(RUN_DIR)?;
+
+    writeln!(log, "[AWS][{}] ファイルの展開", now())?;
     for sent in &request.send {
-        if let Err(e) = dual_judge::decode_file(&sent.data, &sent.path) {
+        dual_judge::decode_file(&sent.data, &sent.path).or_else(|e| {
             writeln!(
-                msg,
-                "[実行環境] [IE] 受信ファイル {:?} が展開できません: {e:?}",
-                sent.path
+                log,
+                "[AWS][{}][IE] {:?} に展開できません: {e:?}",
+                now(),
+                sent.path,
             )
-            .unwrap();
-            return Err(());
-        }
+        })?;
     }
 
-    writeln!(msg, "[実行環境] 実行ディレクトリに実行権限を付与").unwrap();
-    if let Err(e) = chmod_rec(Path::new("/tmp/runner/")) {
+    writeln!(log, "[AWS][{}] 実行ディレクトリに実行権限を付与", now())?;
+    chmod_rec(Path::new(RUN_DIR)).or_else(|e| {
         writeln!(
-            msg,
-            "[実行環境] [IE] chmod -R 777 /tmp/runner/ ができません: {e:?}"
+            log,
+            "[AWS][{}][IE] {RUN_DIR} の権限が変更できません: {e:?}",
+            now()
         )
-        .unwrap();
-        return Err(());
-    }
+    })?;
 
-    writeln!(msg, "[実行環境] コマンドの実行").unwrap();
-    if let Err(e) = exec_start_sh() {
+    writeln!(log, "[AWS][{}] コマンドの実行", now())?;
+    exec_start_sh().or_else(|e| {
         writeln!(
-            msg,
-            "[実行環境] [IE] start.sh を正常に実行できません: {e:?}"
+            log,
+            "[AWS][{}][IE] {RUN_DIR} start.sh を正常に実行できません: {e:?}",
+            now()
         )
-        .unwrap();
-    }
+    })?;
 
-    writeln!(msg, "[実行環境] ファイルの回収").unwrap();
+    writeln!(log, "[AWS][{}] ファイルの回収", now())?;
     let mut collected = vec![];
     for path in &request.collect {
         match dual_judge::encode_file(&path) {
@@ -85,12 +71,23 @@ async fn handler(event: LambdaEvent<Request>, msg: &mut String) -> Result<Vec<Co
                 data: s,
             }),
             Err(e) => {
-                writeln!(msg, "[実行環境] ファイル {path:?} が回収できません: {e:?}").unwrap();
+                writeln!(
+                    log,
+                    "[AWS][{}] {path:?} が回収できませんが続行します: {e:?}",
+                    now()
+                )?;
             }
         }
     }
 
-    Ok(collected)
+    env::set_current_dir(TMP_DIR)?;
+    fs::remove_dir_all(RUN_DIR)?;
+    writeln!(log, "[AWS][{}] 実行完了", now())?;
+
+    Ok(Response {
+        message: log,
+        collected,
+    })
 }
 
 fn chmod_rec(path: &Path) -> Result<()> {

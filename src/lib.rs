@@ -20,6 +20,12 @@ use flate2::{
     Compression,
 };
 
+pub fn now() -> String {
+    chrono::Utc::now()
+        .with_timezone(&chrono_tz::Japan)
+        .to_string()
+}
+
 pub fn comma_sep_int(number: i128) -> String {
     let mut s = number.to_string().into_bytes();
     s.reverse();

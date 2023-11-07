@@ -9,7 +9,7 @@ use std::{
 use console::Style;
 use getopts::{Matches, Options};
 
-use dual_judge::{config::Config, console_styles::ConsoleStyles, lambda, local};
+use dual_judge::{config::Config, console_styles::ConsoleStyles, lambda, local, now};
 
 #[tokio::main]
 async fn main() {
@@ -32,32 +32,34 @@ async fn main() {
         }
     };
 
-    println!("{}", cs.cyan.apply_to("=> judge_config.yaml を読込＆更新"));
-    let config = Config::load_and_rotate_id("./judge_config.yaml").unwrap();
+    println!("[CLI][{}] judge_config.yaml を読込・更新", now());
+    let config = Config::load_and_rotate_id("./judge_config.yaml")
+        .expect("judge_config.yaml を読込・更新できません");
 
-    println!("{}", cs.cyan.apply_to("=> 結果フォルダの作成"));
+    println!("[CLI][{}]  結果フォルダの作成", now());
     let subm_dir_name = format!("results/s_{:0>4}", config.subm_id);
-    fs::create_dir_all(&subm_dir_name).expect(&format!("フォルダが作成できません {subm_dir_name}"));
+    fs::create_dir_all(&subm_dir_name)
+        .expect(&format!("フォルダが作成できません: {subm_dir_name}"));
 
-    println!("{}", cs.cyan.apply_to("=> テストケースを決定"));
+    println!("[CLI][{}] テストケースを決定", now());
     let casefiles = get_casefiles(&opt, &config, &cs);
 
-    println!("{}", cs.cyan.apply_to("=> 結果フォルダ作成"));
+    println!("[CLI][{}] 結果フォルダを作成", now());
     let subm_dir = PathBuf::from(format!("results/s_{:0>4}", config.subm_id));
-    fs::create_dir_all(&subm_dir).unwrap();
+    fs::create_dir_all(&subm_dir).expect("結果フォルダを作成できません");
 
     let final_summary = if opt.opt_present("local") {
-        println!("{}", cs.cyan.apply_to("=> ローカルで並列実行"));
+        println!("[CLI][{}] ローカルで実行", now());
         local::run_all(&casefiles, &subm_dir, &config, &cs).await
     } else if opt.opt_present("lambda") {
-        println!("{}", cs.cyan.apply_to("=> AWS Lambda で並列実行"));
-        // TODO?: warmup
+        println!("[CLI][{}] AWS Lambda で実行", now());
         lambda::run_all(&casefiles, &subm_dir, &config, &cs).await
     } else {
-        panic!("予期せぬエラー: --lambda / --local を1つ指定してください")
+        panic!("--lambda / --local を1つ指定してください")
     };
 
-    println!("{}", cs.cyan.apply_to("=> 要約の表示"));
+    println!("[CLI][{}] 要約の表示・保存", now());
+    println!();
     print!("{}", final_summary);
     let mut summary_file = OpenOptions::new()
         .create(true)
@@ -128,7 +130,7 @@ fn casefiles_auto(config: &Config) -> Vec<PathBuf> {
 
 fn parse_options(args: &[String]) -> Matches {
     let mut opts = Options::new();
-    opts.optflag("", "local", "このパソコン上で実行（デフォルト）");
+    opts.optflag("", "local", "このコンピュータで実行");
     opts.optflag("", "lambda", "AWS Lambda で実行");
     opts.optmulti("c", "case", "テストケースをファイル名で指定", "<name>");
     opts.optflag("", "no-color", "出力に色を付けない");
